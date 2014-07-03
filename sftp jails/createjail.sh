@@ -12,18 +12,24 @@
 # funcarea - Team/Squad Name
 # cwticket - ConnectWise Ticket for this change.
 # password - Default password
+# password1 & password2 - Used to verify input
+#
+# exit code 0 - ran succesfully
+# exit code 1 - failed password
+# exit code 2 - failed reload sshd
+#
+#
 ##########
 
+#Variables
+backupdir = /opt/apparatus/backups
 
 echo "Please enter the ticket number: "
 read cwticket
-#echo "You entered: $cwticket"
 echo "Please enter the user account: "
 read useraccount
-#echo "You entered: $useraccount"
 echo "Please enter the functional area (i.e. Xray, Gamma, etc): "
 read funcarea
-#echo "You entered: $funcarea"
 echo "Please enter the password: "
 read -s password1
 echo "Please enter the password again: "
@@ -33,21 +39,21 @@ read -s password2
 if [ $password1 != $password2]; then
 	echo "Passwords do not match!"
 	echo "Terminating Script!"
-	exit	
+	exit 1	
 else
 	echo "Creating Jailed SFTP Account. Please hold."
 fi
 
 #Make backup dir
-mkdir -p /opt/apparatus/backups/$cwticket
+mkdir -p $backupdir/$cwticket
 
 #Make a backup of current working sshd_config
-cp /etc/ssh/sshd_config /opt/apparatus/backups/$cwticket
+cp /etc/ssh/sshd_config $backupdir/$cwticket
 
 #Make change to sshd_config
 cat << EO1FF >> "/etc/ssh/sshd_config"
 
-#$useraccount ($funcarea) $cwticket \n
+#$useraccount ($funcarea) $cwticket
     Match User $useraccount
     ChrootDirectory /jail/$useraccount
     ForceCommand internal-sftp
@@ -57,6 +63,15 @@ EO1FF
 #Reload the SSHD service
 service sshd reload
 
+#sshd exit code for restart
+if [ $? != 0 ]; then
+	echo "SSHD service did not reload successfully."
+	echo "Rolling back sshd_config to previous version."
+	cp -rf /opt/apparatus/backups/$cwticket/sshd_config /etc/ssh/sshd_config
+	service sshd reload
+	exit 2
+fi
+
 #Add user account
 useradd -G sshusers -M -d /files $useraccount
 
@@ -65,10 +80,11 @@ password=$password1
 echo "$useraccount:$password" | chpasswd
 
 #Create File Structure
-cd /jail; mkdir -p $useraccount/files/$useraccount
+mkdir -p /jail/$useraccount/files/$useraccount
 
 #Change permissions
-cd $useraccount/files; chown -R $useraccount:$useraccount . ; chmod -R 770 .
+chown -R $useraccount:$useraccount /jail/$useraccount/files ; chmod -R 770 /jail/$useraccount/files
 
 #Now go test
 echo "Go Test sftp $useraccount@upload"
+exit 0
