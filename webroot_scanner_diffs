@@ -1,0 +1,21 @@
+#!/usr/bin/python
+
+import os,sys
+
+today_file=0
+yesterday_file=0
+
+file = open("/var/log/security/today","r")
+today_file=file.readline()
+file.close()
+file = open("/var/log/security/yesterday","r")
+yesterday_file=file.readline()
+file.close()
+
+tmp = today_file.split()
+today = tmp[0]
+tmp = yesterday_file.split()
+yesterday = tmp[0]
+
+if int(today) <> int(yesterday):
+        mailit=os.system("/usr/sbin/sendmail -t </home/<user>/scripts/mssg.txt")
