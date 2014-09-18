@@ -1,0 +1,8 @@
+cat /etc/httpd/conf.d/virtualhost*.conf |grep -i DocumentRoot |grep -v ^# |sort |uniq |cut -d " " -f 2 >/tmp/webroots.txt
+
+
+for files in `cat /tmp/webroots.txt`
+do
+#       echo 'Checking ' $files
+        find  $files -perm -o+w -exec file  '{}' \;|grep -v "symbolic link"
+done
