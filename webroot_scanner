@@ -1,0 +1,8 @@
+/bin/mv /var/log/security/today /var/log/security/yesterday
+/usr/bin/find /var/www/ -name "*.php" -exec egrep -i "system\(|livemeds|str_rot13|grep.txt|Levitra|myrefc.txt|viagra|Emp3ror|r57shell|31337|r00t|c99shell|base64_decode|almomiz" '{}' \; -print >>/var/log/security/check.txt
+/usr/bin/find /shares/ -name "*.php" -exec egrep -i "system\(|livemeds|str_rot13|grep.txt|Levitra|myrefc.txt|viagra|Emp3ror|r57shell|31337|r00t|c99shell|base64_decode|almomiz" '{}' \; -print >>/var/log/security/check.txt
+/bin/grep -R SetEnv /etc/httpd/conf/* /etc/httpd/conf.d/* >>/var/log/security/check.txt
+/usr/bin/wc /var/log/security/check.txt >/var/log/security/today
+/usr/bin/bzip2 /var/log/security/check.txt
+/bin/mv /var/log/security/check.txt.bz2 /var/log/security/check.txt-`date +%Y%m%d`.bz2
+/home/a/austinsr/scripts/webchecks-compare.py
