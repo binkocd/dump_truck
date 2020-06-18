@@ -1,0 +1,5 @@
+#!/bin/bash
+
+args=("$@")
+
+echo $'#! /usr/bin/python3\n# '${args[0]}$'.py\nAuthor: binkocd' > ${args[0]}.py
